@@ -1,6 +1,8 @@
-package com.chaves.libraryapi.resource;
+package com.chaves.libraryapi.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.chaves.libraryapi.dto.BookDTO;
+import com.chaves.libraryapi.model.entity.Book;
+import com.chaves.libraryapi.service.BookService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -8,14 +10,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -30,10 +34,17 @@ public class BookControllerTest {
     @Autowired
     MockMvc mvc;
 
+    @MockBean
+    BookService service;
+
     @Test
     @DisplayName("Deve criar um livro com sucesso")
     public void createBookTest() throws Exception {
-        String json = new ObjectMapper().writeValueAsString(null);
+        BookDTO dto = BookDTO.builder().author("Artur").title("As aventuras").isbn("001").build();
+        String json = new ObjectMapper().writeValueAsString(dto);
+        Book savedBook = Book.builder().id(01l).author("Artur").title("As aventuras").isbn("001").build();
+
+        given(service.save(any(Book.class))).willReturn(savedBook);
 
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .post(BOOK_API)
@@ -41,13 +52,12 @@ public class BookControllerTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(json);
 
-        mvc
-                .perform(request)
+        mvc.perform(request)
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("id").isNotEmpty())
-                .andExpect(jsonPath("book").value("Meu livro"))
-                .andExpect(jsonPath("author").value("Autor"))
-                .andExpect(jsonPath("isbn").value("1255599"));
+                .andExpect(jsonPath("id").value(01l))
+                .andExpect(jsonPath("title").value(dto.getTitle()))
+                .andExpect(jsonPath("author").value(dto.getAuthor()))
+                .andExpect(jsonPath("isbn").value(dto.getIsbn()));
     }
 
     @Test
