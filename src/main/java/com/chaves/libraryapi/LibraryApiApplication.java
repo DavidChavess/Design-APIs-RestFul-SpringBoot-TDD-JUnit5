@@ -4,6 +4,9 @@ import org.modelmapper.ModelMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.MethodParameter;
+import org.springframework.validation.BindingResultUtils;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 @SpringBootApplication
 public class LibraryApiApplication {
@@ -13,8 +16,6 @@ public class LibraryApiApplication {
 		return new ModelMapper();
 	}
 
-	public static void main(String[] args) {
-		SpringApplication.run(LibraryApiApplication.class, args);
-	}
+	public static void main(String[] args){}
 
 }
