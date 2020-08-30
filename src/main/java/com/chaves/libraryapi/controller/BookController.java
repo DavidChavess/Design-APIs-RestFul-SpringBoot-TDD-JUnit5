@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("api/books")
@@ -27,5 +28,12 @@ public class BookController {
         Book entity = modelMapper.map(bookDTO, Book.class);
         entity = service.save(entity);
         return modelMapper.map(entity, BookDTO.class);
+    }
+
+    @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public BookDTO getById(@PathVariable Long id){
+        Optional<Book> book =  service.getById(id);
+        return modelMapper.map(book.get(), BookDTO.class);
     }
 }

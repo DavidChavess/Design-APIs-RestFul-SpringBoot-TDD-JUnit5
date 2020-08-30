@@ -19,8 +19,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
@@ -101,8 +104,32 @@ public class BookControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("errors", hasSize(1)))
                 .andExpect(jsonPath("errors[0]").value(messageError));
+    }
 
+    @Test
+    @DisplayName("Deve obter informações de um livro pelo id")
+    public void getBookByIdTest() throws Exception {
+        Long id = 1l;
+        BookDTO dtoDefault = createNewBookDTO();
+        Book book = Book.builder()
+                .id(id)
+                .author(dtoDefault.getAuthor())
+                .title(dtoDefault.getTitle())
+                .isbn(dtoDefault.getIsbn())
+                .build();
 
+        given(service.getById(id)).willReturn(Optional.of(book));
+
+        MockHttpServletRequestBuilder request =  MockMvcRequestBuilders
+                .get(BOOK_API.concat("/"+id))
+                .accept(MediaType.APPLICATION_JSON);
+
+        mvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id").value(id))
+                .andExpect(jsonPath("author").value(dtoDefault.getAuthor()))
+                .andExpect(jsonPath("title").value(dtoDefault.getTitle()))
+                .andExpect(jsonPath("isbn").value(dtoDefault.getIsbn()));
     }
 
     private BookDTO createNewBookDTO(){
