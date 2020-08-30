@@ -4,13 +4,10 @@ import com.chaves.libraryapi.dto.BookDTO;
 import com.chaves.libraryapi.exception.BusinessException;
 import com.chaves.libraryapi.model.entity.Book;
 import com.chaves.libraryapi.service.BookService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -19,7 +16,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
@@ -130,6 +126,18 @@ public class BookControllerTest {
                 .andExpect(jsonPath("author").value(dtoDefault.getAuthor()))
                 .andExpect(jsonPath("title").value(dtoDefault.getTitle()))
                 .andExpect(jsonPath("isbn").value(dtoDefault.getIsbn()));
+    }
+
+    @Test
+    @DisplayName("Deve lançar erro quando não encontrar um livro pelo id")
+    public void bookNotFoundTest() throws Exception {
+        given(service.getById(1l)).willReturn(Optional.empty());
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .get(BOOK_API.concat("/"+1))
+                .accept(MediaType.APPLICATION_JSON);
+
+        mvc.perform(request).andExpect(status().isNotFound());
     }
 
     private BookDTO createNewBookDTO(){

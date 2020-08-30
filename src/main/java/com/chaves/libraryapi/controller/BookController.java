@@ -6,6 +6,7 @@ import com.chaves.libraryapi.service.BookService;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
 import java.util.Optional;
@@ -33,7 +34,9 @@ public class BookController {
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public BookDTO getById(@PathVariable Long id){
-        Optional<Book> book =  service.getById(id);
-        return modelMapper.map(book.get(), BookDTO.class);
+        return service
+                .getById(id)
+                .map(book -> modelMapper.map(book, BookDTO.class))
+                .orElseThrow( () -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 }
