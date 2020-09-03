@@ -46,4 +46,16 @@ public class BookController {
         service.delete(service.getById(id)
                 .orElseThrow( () -> new ResponseStatusException(HttpStatus.NOT_FOUND)));
     }
+
+    @PutMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public BookDTO update(@PathVariable Long id, @Valid @RequestBody BookDTO bookDto) {
+        return service.getById(id)
+                .map(book -> {
+                    book.setAuthor(bookDto.getAuthor());
+                    book.setTitle(bookDto.getTitle());
+                    book = service.update(book);
+                    return modelMapper.map(book, BookDTO.class);})
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    }
 }

@@ -4,6 +4,7 @@ import com.chaves.libraryapi.dto.BookDTO;
 import com.chaves.libraryapi.exception.BusinessException;
 import com.chaves.libraryapi.model.entity.Book;
 import com.chaves.libraryapi.service.BookService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -156,10 +157,52 @@ public class BookControllerTest {
     @Test
     @DisplayName("Deve retornar resource not found quando não encontrar um livro para deletar")
     public void deletedInexistentBookTest() throws Exception {
-        given(service. getById(anyLong())).willReturn(Optional.empty());
+        given(service.getById(anyLong())).willReturn(Optional.empty());
 
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .delete(BOOK_API.concat("/"+1));
+
+        mvc.perform(request)
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("Deve atualizar um livro ")
+    public void updateBookTest() throws Exception {
+        Long id = 1l;
+        BookDTO dtoDefault = createNewBookDTO();
+        String json = new ObjectMapper().writeValueAsString(dtoDefault);
+        Book updatingBook = Book.builder().id(id).author("algun autor").title("algun titulo").isbn("321").build();
+        given(service.getById(id)).willReturn(Optional.of(updatingBook));
+        Book updateBook = Book.builder().id(id).title(dtoDefault.getTitle()).author(dtoDefault.getAuthor()).isbn("321").build();
+        given(service.update(updatingBook)).willReturn(updateBook);
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .put(BOOK_API.concat("/"+id))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(json);
+
+        mvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id").value(id))
+                .andExpect(jsonPath("author").value(dtoDefault.getAuthor()))
+                .andExpect(jsonPath("title").value(dtoDefault.getTitle()))
+                .andExpect(jsonPath("isbn").value("321"));
+    }
+
+    @Test
+    @DisplayName("Deve retornar 404 ao tentar atualizar um livro inexistente")
+    public void updateInexistentBookTest() throws Exception {
+        BookDTO dtoDefault = createNewBookDTO();
+        String json = new ObjectMapper().writeValueAsString(dtoDefault);
+        given(service.getById(anyLong())).willReturn(Optional.empty());
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .put(BOOK_API.concat("/"+1))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(json);
 
         mvc.perform(request)
                 .andExpect(status().isNotFound());
