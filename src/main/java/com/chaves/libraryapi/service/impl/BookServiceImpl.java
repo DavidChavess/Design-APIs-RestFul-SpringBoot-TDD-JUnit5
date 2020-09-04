@@ -32,11 +32,17 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public void delete(Book book) {
-
+        if(book == null || book.getId() == null){
+            throw new IllegalArgumentException("O livro não pode estar com o id vazio");
+        }
+        repository.delete(book);
     }
 
     @Override
     public Book update(Book book) {
-        return null;
+        if(book == null || book.getId() == null){
+            throw new IllegalArgumentException("O livro não pode estar com o id vazio");
+        }
+        return repository.save(book);
     }
 }
