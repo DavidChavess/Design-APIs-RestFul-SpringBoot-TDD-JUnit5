@@ -143,6 +143,17 @@ public class BookServiceTest {
         assertThat( bookUpdated.getAuthor() ).isEqualTo("J.K Rowling");
     }
 
+
+    @Test
+    @DisplayName("Não deve atualizar um livro sem id")
+    public void updateInvalidBookTest(){
+        Book book = createValidBook();
+
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> service.update(book));
+
+        verify(repository, never()).save(book);
+    }
+
     @Test
     @DisplayName("Deve filtar livros com base nas propriedades")
     public void findBookTest(){
