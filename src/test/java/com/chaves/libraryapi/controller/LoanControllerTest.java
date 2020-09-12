@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import java.time.LocalDate;
 import java.util.Optional;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -49,10 +50,11 @@ public class LoanControllerTest {
     public void createLoanTest() throws Exception{
         LoanDTO dto = LoanDTO.builder().isbn("123").customer("Fulano").build();
         String json = new ObjectMapper().writeValueAsString(dto);
+
         Book book = Book.builder().id(1l).isbn("123").build();
+        given(bookService.getBookByIsbn("123")).willReturn(Optional.of(book));
+
         Loan loan = Loan.builder().id(1l).customer("Fulano").loanDate(LocalDate.now()).book(book).build();
-        
-        given(bookService.getBookByIsbn("123")).willReturn(Optional.of(book).get());
         given(loanService.save(any(Loan.class))).willReturn(loan);
 
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
@@ -63,6 +65,26 @@ public class LoanControllerTest {
 
         mvc.perform(request)
                 .andExpect(status().isCreated())
-                .andExpect(content().string("1"));
+                .andExpect(content().string(String.valueOf(loan.getId())));
+    }
+
+    @Test
+    @DisplayName("Não deve criar um emprestimo se o livro com o isbn informado não existir")
+    public void invalidIsbnCreateLoanTest() throws Exception{
+        LoanDTO dto = LoanDTO.builder().isbn("123").customer("Fulano").build();
+        String json = new ObjectMapper().writeValueAsString(dto);
+
+        given(bookService.getBookByIsbn("123")).willReturn(Optional.empty());
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .post(LOAN_API)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json);
+
+        mvc.perform(request)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("errors", hasSize(1)))
+                .andExpect(jsonPath("errors[0]").value("Livro não encontrado para o isbn informado"));
     }
 }
