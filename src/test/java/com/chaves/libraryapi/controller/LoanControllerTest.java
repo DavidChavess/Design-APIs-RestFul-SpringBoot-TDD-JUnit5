@@ -1,10 +1,12 @@
 package com.chaves.libraryapi.controller;
 
 import com.chaves.libraryapi.dto.LoanDTO;
+import com.chaves.libraryapi.exception.BusinessException;
 import com.chaves.libraryapi.model.entity.Book;
 import com.chaves.libraryapi.model.entity.Loan;
 import com.chaves.libraryapi.service.BookService;
 import com.chaves.libraryapi.service.LoanService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import javax.swing.plaf.nimbus.NimbusStyle;
 import java.time.LocalDate;
 import java.util.Optional;
 
@@ -86,5 +89,28 @@ public class LoanControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("errors", hasSize(1)))
                 .andExpect(jsonPath("errors[0]").value("Livro não encontrado para o isbn informado"));
+    }
+
+    @Test
+    @DisplayName("Deve retornar erro ao fazer emprestimo de um livro já emprestado")
+    public void loanedBookErrorOnCreateLoanTest() throws Exception {
+        LoanDTO dto = LoanDTO.builder().isbn("123").customer("Fulano").build();
+        String json = new ObjectMapper().writeValueAsString(dto);
+
+        Book book = Book.builder().id(1l).isbn("123").build();
+        given(bookService.getBookByIsbn("123")).willReturn(Optional.of(book));
+
+        given(loanService.save(any(Loan.class))).willThrow(new BusinessException("Livro já emprestado"));
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .post(LOAN_API)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json);
+
+        mvc.perform(request)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("errors", hasSize(1)))
+                .andExpect(jsonPath("errors[0]").value("Livro já emprestado"));
     }
 }
