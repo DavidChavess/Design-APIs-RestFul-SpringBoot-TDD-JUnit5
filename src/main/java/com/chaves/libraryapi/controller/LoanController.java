@@ -23,7 +23,7 @@ public class LoanController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Long created(@RequestBody LoanDTO loanDTO){
-        Book book = bookService.getBookByIsbn(loanDTO.getIsbn())
+        Book book = bookService.getByIsbn(loanDTO.getIsbn())
                     .orElseThrow(()->
                     new ResponseStatusException(HttpStatus.BAD_REQUEST, "Livro não encontrado para o isbn informado"));
 

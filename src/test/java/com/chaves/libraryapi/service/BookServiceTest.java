@@ -172,6 +172,19 @@ public class BookServiceTest {
         assertThat(result.getContent()).isEqualTo(list);
     }
 
+    @Test
+    @DisplayName("Deve retornar um livro com o isbn informado")
+    public void getByIsbnTest(){
+        String isbn = "1220";
+        when(repository.findByIsbn(isbn)).thenReturn(Optional.of(Book.builder().id(1l).isbn(isbn).build()));
+
+        Optional<Book> book = service.getByIsbn(isbn);
+
+        assertThat(book).isPresent();
+        assertThat(book.get().getId()).isEqualTo(1l);
+        assertThat(book.get().getIsbn()).isEqualTo(isbn);
+    }
+
     private Book createValidBook() {
         return Book.builder().isbn("123").author("Fulano").title("As aventuras").build();
     }
