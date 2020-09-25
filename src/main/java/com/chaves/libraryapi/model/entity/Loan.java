@@ -18,4 +18,5 @@ public class Loan {
     private String customer;
     private LocalDate loanDate;
     private Book book;
+    private Boolean returned;
 }

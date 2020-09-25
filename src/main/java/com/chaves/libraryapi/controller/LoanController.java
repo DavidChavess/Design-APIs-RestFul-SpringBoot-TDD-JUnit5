@@ -1,7 +1,6 @@
 package com.chaves.libraryapi.controller;
 
 import com.chaves.libraryapi.dto.LoanDTO;
-import com.chaves.libraryapi.exception.BusinessException;
 import com.chaves.libraryapi.model.entity.Book;
 import com.chaves.libraryapi.model.entity.Loan;
 import com.chaves.libraryapi.service.BookService;
@@ -17,8 +16,9 @@ import java.time.LocalDate;
 @RequestMapping("/api/loans")
 @AllArgsConstructor
 public class LoanController {
-    private final LoanService loanService;
-    private final BookService bookService;
+
+    private LoanService loanService;
+    private BookService bookService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
