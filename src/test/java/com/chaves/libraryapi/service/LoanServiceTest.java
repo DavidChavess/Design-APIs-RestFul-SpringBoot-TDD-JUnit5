@@ -4,6 +4,7 @@ import com.chaves.libraryapi.exception.BusinessException;
 import com.chaves.libraryapi.model.entity.Book;
 import com.chaves.libraryapi.model.entity.Loan;
 import com.chaves.libraryapi.repository.LoanRepository;
+import com.chaves.libraryapi.repository.LoanRepositoryTest;
 import com.chaves.libraryapi.service.impl.LoanServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
