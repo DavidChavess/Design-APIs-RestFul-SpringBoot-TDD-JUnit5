@@ -1,6 +1,7 @@
 package com.chaves.libraryapi.controller;
 
 import com.chaves.libraryapi.dto.LoanDTO;
+import com.chaves.libraryapi.dto.ReturnedLoanDTO;
 import com.chaves.libraryapi.exception.BusinessException;
 import com.chaves.libraryapi.model.entity.Book;
 import com.chaves.libraryapi.model.entity.Loan;
@@ -26,9 +27,13 @@ import javax.swing.plaf.nimbus.NimbusStyle;
 import java.time.LocalDate;
 import java.util.Optional;
 
+import static java.util.Optional.*;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ActiveProfiles("test")
@@ -55,7 +60,7 @@ public class LoanControllerTest {
         String json = new ObjectMapper().writeValueAsString(dto);
 
         Book book = Book.builder().id(1l).isbn("123").build();
-        given(bookService.getByIsbn("123")).willReturn(Optional.of(book));
+        given(bookService.getByIsbn("123")).willReturn(of(book));
 
         Loan loan = Loan.builder().id(1l).customer("Fulano").loanDate(LocalDate.now()).book(book).build();
         given(loanService.save(any(Loan.class))).willReturn(loan);
@@ -77,7 +82,7 @@ public class LoanControllerTest {
         LoanDTO dto = LoanDTO.builder().isbn("123").customer("Fulano").build();
         String json = new ObjectMapper().writeValueAsString(dto);
 
-        given(bookService.getByIsbn("123")).willReturn(Optional.empty());
+        given(bookService.getByIsbn("123")).willReturn(empty());
 
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .post(LOAN_API)
@@ -98,7 +103,7 @@ public class LoanControllerTest {
         String json = new ObjectMapper().writeValueAsString(dto);
 
         Book book = Book.builder().id(1l).isbn("123").build();
-        given(bookService.getByIsbn("123")).willReturn(Optional.of(book));
+        given(bookService.getByIsbn("123")).willReturn(of(book));
 
         given(loanService.save(any(Loan.class))).willThrow(new BusinessException("Livro já emprestado"));
 
@@ -112,5 +117,44 @@ public class LoanControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("errors", hasSize(1)))
                 .andExpect(jsonPath("errors[0]").value("Livro já emprestado"));
+    }
+
+    @Test
+    @DisplayName("Deve retornar um livro")
+    public void returnedBookTest() throws Exception {
+        ReturnedLoanDTO dto = ReturnedLoanDTO.builder().returned(true).build();
+        String json = new ObjectMapper().writeValueAsString(dto);
+
+        Loan loan = Loan.builder().id(1L).build();
+        given(loanService.getById(any(Long.class)))
+                .willReturn(Optional.of(loan));
+
+        mvc.perform(
+                patch(LOAN_API.concat("/"+1))
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json)
+        ).andExpect(status().isOk());
+
+        verify(loanService, times(1)).update(loan);
+    }
+
+    @Test
+    @DisplayName("Deve retornar 404 se não encontrar um empréstimo para devolver")
+    public void returnedInexistentLoanTest () throws Exception {
+        ReturnedLoanDTO dto = ReturnedLoanDTO.builder().returned(true).build();
+        String json = new ObjectMapper().writeValueAsString(dto);
+
+        given(loanService.getById(any(Long.class)))
+                .willReturn(Optional.empty());
+
+        mvc.perform(
+                patch(LOAN_API.concat("/"+1))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json)
+        ).andExpect(status().isNotFound());
+
+        verify(loanService, never()).update(any(Loan.class));
     }
 }

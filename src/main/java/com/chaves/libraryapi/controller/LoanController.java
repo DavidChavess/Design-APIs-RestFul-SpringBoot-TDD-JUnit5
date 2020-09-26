@@ -1,6 +1,7 @@
 package com.chaves.libraryapi.controller;
 
 import com.chaves.libraryapi.dto.LoanDTO;
+import com.chaves.libraryapi.dto.ReturnedLoanDTO;
 import com.chaves.libraryapi.model.entity.Book;
 import com.chaves.libraryapi.model.entity.Loan;
 import com.chaves.libraryapi.service.BookService;
@@ -36,5 +37,15 @@ public class LoanController {
 
         loanEntity = loanService.save(loanEntity);
         return loanEntity.getId();
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @PatchMapping("/{id}")
+    public void returnedBook(@PathVariable Long id, @RequestBody ReturnedLoanDTO dto){
+        Loan loan = loanService.getById(id)
+                .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        loan.setReturned(dto.getReturned());
+        loanService.update(loan);
     }
 }
