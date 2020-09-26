@@ -15,6 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -68,6 +69,44 @@ public class LoanServiceTest {
                 .hasMessage("Livro já emprestado");
 
         verify(repository, never()).save(loan);
+    }
+
+    @Test
+    @DisplayName("Deve retornar as  informações de um empréstimo pelo id")
+    public void getLoanByIdTest(){
+        // cenario
+        Long id = 1L;
+        Loan loan = createValidLoan();
+        loan.setId(id);
+
+        when(repository.findById(id)).thenReturn(Optional.of(loan));
+
+        //execução
+        Optional<Loan> returnedLoan = service.getById(id);
+
+        //verificação
+        assertThat(returnedLoan.isPresent()).isTrue();
+        assertThat(returnedLoan.get().getId()).isEqualTo(loan.getId());
+        assertThat(returnedLoan.get().getLoanDate()).isEqualTo(loan.getLoanDate());
+        assertThat(returnedLoan.get().getBook()).isEqualTo(loan.getBook());
+        assertThat(returnedLoan.get().getCustomer()).isEqualTo(loan.getCustomer());
+
+        verify(repository, times(1)).findById(id);
+    }
+
+    @Test
+    @DisplayName("Deve atualizar um espréstimo, devolvendo um livro emprestado")
+    public void updateLoanTest(){
+        Loan loan = createValidLoan();
+        loan.setId(1L);
+        loan.setReturned(true);
+        when(repository.save(loan)).thenReturn(loan);
+
+        Loan updatedLoan = service.update(loan);
+
+        assertThat(updatedLoan.getReturned()).isTrue();
+
+        verify(repository, times(1)).save(loan);
     }
 
     private Loan createValidLoan(){

@@ -120,7 +120,7 @@ public class LoanControllerTest {
     }
 
     @Test
-    @DisplayName("Deve retornar um livro")
+    @DisplayName("Deve retornar um livro que foi emprestado")
     public void returnedBookTest() throws Exception {
         ReturnedLoanDTO dto = ReturnedLoanDTO.builder().returned(true).build();
         String json = new ObjectMapper().writeValueAsString(dto);
