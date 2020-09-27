@@ -1,6 +1,8 @@
 package com.chaves.libraryapi.controller;
 
+import com.chaves.libraryapi.dto.BookDTO;
 import com.chaves.libraryapi.dto.LoanDTO;
+import com.chaves.libraryapi.dto.LoanFilterOrCreateDTO;
 import com.chaves.libraryapi.dto.ReturnedLoanDTO;
 import com.chaves.libraryapi.exception.BusinessException;
 import com.chaves.libraryapi.model.entity.Book;
@@ -16,6 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -25,6 +30,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import javax.swing.plaf.nimbus.NimbusStyle;
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static java.util.Optional.*;
@@ -56,7 +63,7 @@ public class LoanControllerTest {
     @Test
     @DisplayName("Deve criar um emprestimo de livro")
     public void createLoanTest() throws Exception{
-        LoanDTO dto = LoanDTO.builder().isbn("123").customer("Fulano").build();
+        LoanFilterOrCreateDTO dto = LoanFilterOrCreateDTO.builder().isbn("123").customer("Fulano").build();
         String json = new ObjectMapper().writeValueAsString(dto);
 
         Book book = Book.builder().id(1l).isbn("123").build();
@@ -79,7 +86,7 @@ public class LoanControllerTest {
     @Test
     @DisplayName("Não deve criar um emprestimo se o livro com o isbn informado não existir")
     public void invalidIsbnCreateLoanTest() throws Exception{
-        LoanDTO dto = LoanDTO.builder().isbn("123").customer("Fulano").build();
+        LoanFilterOrCreateDTO dto = LoanFilterOrCreateDTO.builder().isbn("123").customer("Fulano").build();
         String json = new ObjectMapper().writeValueAsString(dto);
 
         given(bookService.getByIsbn("123")).willReturn(empty());
@@ -99,7 +106,7 @@ public class LoanControllerTest {
     @Test
     @DisplayName("Deve retornar erro ao fazer emprestimo de um livro já emprestado")
     public void loanedBookErrorOnCreateLoanTest() throws Exception {
-        LoanDTO dto = LoanDTO.builder().isbn("123").customer("Fulano").build();
+        LoanFilterOrCreateDTO dto = LoanFilterOrCreateDTO.builder().isbn("123").customer("Fulano").build();
         String json = new ObjectMapper().writeValueAsString(dto);
 
         Book book = Book.builder().id(1l).isbn("123").build();
@@ -156,5 +163,39 @@ public class LoanControllerTest {
         ).andExpect(status().isNotFound());
 
         verify(loanService, never()).update(any(Loan.class));
+    }
+
+    @Test
+    @DisplayName("Deve filtrar empréstimos")
+    public void findLoanTest() throws Exception {
+        LoanFilterOrCreateDTO dto = LoanFilterOrCreateDTO
+                .builder()
+                .customer("Fulano")
+                .isbn("123")
+                .build();
+        String json = new ObjectMapper().writeValueAsString(dto);
+
+        List<Loan> list = Arrays.asList(Loan.builder()
+                .id(1L)
+                .customer("Fulano")
+                .book(Book.builder().id(1L).build())
+                .build());
+
+        given(loanService.find( any(LoanFilterOrCreateDTO.class), any(Pageable.class) ))
+                .willReturn(new PageImpl<>(list, PageRequest.of(0,10), 1));
+
+        String stringQuery = String.format("?customer=%s&isbn=%s&page=0&size=10",
+                dto.getCustomer(), dto.getIsbn());
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .get(LOAN_API.concat(stringQuery))
+                .accept(MediaType.APPLICATION_JSON);
+
+        mvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect( jsonPath("content", hasSize(1)) )
+                .andExpect( jsonPath("totalElements").value(1))
+                .andExpect( jsonPath("pageable.pageSize").value(10))
+                .andExpect( jsonPath("pageable.pageNumber").value(0));
     }
 }
