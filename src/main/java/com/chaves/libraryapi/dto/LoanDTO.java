@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -14,5 +16,7 @@ public class LoanDTO {
 
     private Long id;
     private String customer;
+    private String customerEmail;
+    private LocalDate loanDate;
     private BookDTO book;
 }

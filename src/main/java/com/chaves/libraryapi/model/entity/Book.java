@@ -3,6 +3,7 @@ package com.chaves.libraryapi.model.entity;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -27,5 +28,5 @@ public class Book {
     private String isbn;
 
     @OneToMany(mappedBy = "book")
-    private List<Loan> loans;
+    private List<Loan> loans = new ArrayList<>();
 }

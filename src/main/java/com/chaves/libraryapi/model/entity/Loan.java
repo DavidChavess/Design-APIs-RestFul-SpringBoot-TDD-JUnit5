@@ -26,6 +26,9 @@ public class Loan {
     private String customer;
 
     @Column
+    private String customerEmail;
+
+    @Column
     private LocalDate loanDate;
 
     @JoinColumn(name = "book_id")
