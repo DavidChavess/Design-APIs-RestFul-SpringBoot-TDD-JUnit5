@@ -8,7 +8,7 @@ import com.chaves.libraryapi.model.entity.Book;
 import com.chaves.libraryapi.model.entity.Loan;
 import com.chaves.libraryapi.service.BookService;
 import com.chaves.libraryapi.service.LoanService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -18,19 +18,17 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/loans")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class LoanController {
 
-    private LoanService loanService;
-    private BookService bookService;
-    private ModelMapper modelMapper;
+    private final LoanService loanService;
+    private final BookService bookService;
+    private final ModelMapper modelMapper;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

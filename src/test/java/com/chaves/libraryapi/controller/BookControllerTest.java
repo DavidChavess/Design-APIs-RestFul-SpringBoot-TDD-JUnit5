@@ -4,6 +4,7 @@ import com.chaves.libraryapi.dto.BookDTO;
 import com.chaves.libraryapi.exception.BusinessException;
 import com.chaves.libraryapi.model.entity.Book;
 import com.chaves.libraryapi.service.BookService;
+import com.chaves.libraryapi.service.LoanService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,19 +33,22 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
-@WebMvcTest(controllers = BookController.class)
+@ExtendWith(SpringExtension.class)
+@WebMvcTest(value = BookController.class)
 @AutoConfigureMockMvc
 public class BookControllerTest {
-
-    static String BOOK_API = "/api/books";
 
     @Autowired
     MockMvc mvc;
 
     @MockBean
-    BookService service;
+    private BookService service;
+
+    @MockBean
+    private LoanService loanService;
+
+    private static String BOOK_API = "/api/books";
 
     @Test
     @DisplayName("Deve criar um livro com sucesso")
