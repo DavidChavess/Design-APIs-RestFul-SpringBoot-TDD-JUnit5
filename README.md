@@ -3,6 +3,8 @@ Repositório criado durante o curso do intrutor: https://github.com/cursodsousa
 
 [![Build Status](https://travis-ci.com/DavidChavess/Design-APIs-RestFul-SpringBoot-TDD-JUnit5.svg?branch=master)](https://travis-ci.com/DavidChavess/Design-APIs-RestFul-SpringBoot-TDD-JUnit5)
 
+[![codecov](https://codecov.io/gh/DavidChavess/Design-APIs-RestFul-SpringBoot-TDD-JUnit5/branch/master/graph/badge.svg)](https://codecov.io/gh/DavidChavess/Design-APIs-RestFul-SpringBoot-TDD-JUnit5)
+
 
 ## Descrição
 
